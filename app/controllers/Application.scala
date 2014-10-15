@@ -6,6 +6,7 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import java.util.{Date}
 import models.Task
 
 object Application extends Controller {
@@ -16,7 +17,9 @@ object Application extends Controller {
 	
 	implicit val taskWrites:Writes[Task] = (
 		(JsPath\"id").write[Long] and
-		(JsPath\"label").write[String]
+		(JsPath\"label").write[String] and
+		(JsPath\"usertask").write[String] and
+		(JsPath\"enddate").write[Option[Date]]
 	)(unlift(Task.unapply))
 	
 	def index = Action {
@@ -67,11 +70,45 @@ object Application extends Controller {
 		}
 	}
 
+	def dateToOptionDate(param: Date): Option[Date] = {
+		Some(param)
+	}
 	
-
-
-
-
-
-
+	def newtaskUserDate(label: String, login: String, enddate: String) = Action {
+		var dateFormat = new java.text.SimpleDateFormat("YYYY-MM-DD")
+		var date = dateFormat.parse(enddate)
+		var dateParam = dateToOptionDate(date)
+		
+		Task.getUser(login) match {
+			case Some(i) => {
+				val json = Json.obj(
+					"label" -> Json.toJson(Task.createUserTaskDate(label, i, dateParam))
+				)
+				Created(json)
+			}
+			case None => NotFound
+		}
+	}
+	
+	def tasksUserDate(login: String, enddate: String) = Action {
+		var dateFormat = new java.text.SimpleDateFormat("YYYY-MM-DD")
+		var date = dateFormat.parse(enddate)
+		var dateParam = dateToOptionDate(date)
+		
+		Task.getUser(login) match {
+			case Some(i) => {
+				val json = Json.toJson(Task.allUserDate(i, dateParam))
+				Ok(json)
+			}
+			case None => NotFound
+		}
+	}
+	
+	def tasksUserBeforeDate(beforedate: String) = Action {
+		var dateFormat = new java.text.SimpleDateFormat("YYY-MM-DD")
+		var date = dateFormat.parse(beforedate)
+		var dateParam = dateToOptionDate(date)
+		val json = Json.toJson(Task.allBeforeDate(dateParam))
+		Ok(json)
+	}
 }
