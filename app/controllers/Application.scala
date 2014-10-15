@@ -2,13 +2,10 @@ package controllers
 
 import play.api._
 import play.api.mvc._
-
 import play.api.data._
 import play.api.data.Forms._
-
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-
 import models.Task
 
 object Application extends Controller {
@@ -24,13 +21,11 @@ object Application extends Controller {
 	
 	def index = Action {
 		Ok(views.html.index(Task.all(), taskForm))
-//		Redirect(routes.Application.tasks)
 	}
 	
 	def tasks = Action {
 		val json = Json.toJson(Task.all())
 		Ok(json)
-//		Ok(views.html.index(Task.all(), taskForm))
 	}
 	
 	def newTask = Action { implicit request =>
@@ -40,8 +35,7 @@ object Application extends Controller {
 				val json = Json.obj(
 					"label" -> Json.toJson(Task.create(label))
 				)
-				Created(json)	
-//				Redirect(routes.Application.tasks)
+				Created(json)
 			}
 		)
 	}
@@ -50,5 +44,34 @@ object Application extends Controller {
 		Task.delete(id)
 		Redirect(routes.Application.tasks)
 	}
+
+	def userTasks(login: String) = Action {
+		Task.getUser(login) match {
+			case Some(i) => {
+				val json = Json.toJson(Task.allUser(i))
+				Ok(json)
+			}
+			case None => NotFound
+		}
+	}
+
+	def newUserTask(label: String, login: String) = Action {
+		Task.getUser(login) match {
+			case Some(i) => {
+				val json = Json.obj(
+					"label" -> Json.toJson(Task.createUserTask(label, i))
+				)
+				Created(json)
+			}
+			case None => NotFound
+		}
+	}
+
+	
+
+
+
+
+
 
 }

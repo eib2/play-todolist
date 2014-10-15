@@ -1,4 +1,3 @@
-
 package models
 
 case class Task(id: Long, label: String)
@@ -19,6 +18,7 @@ object Task {
 	
 	def all(): List[Task] = DB.withConnection { implicit c =>
 		SQL("select * from task").as(task *)
+//		SQL("SELECT * FROM task WHERE usertask_fk = 'Anonymous'").as(task *)
 	}
 	
 	def create(label: String): String = DB.withConnection { implicit c =>
@@ -33,5 +33,29 @@ object Task {
 				'id -> id
 				).executeUpdate()
 	}
+	
+	def getUser(login: String) : Option[String] = DB.withConnection { implicit c =>
+		SQL("SELECT login FROM usertask WHERE login = {login}").on(
+			'login -> login
+		).as(scalar[String].singleOpt)
+	}
+	
+	def allUser(login: String): List[Task] = DB.withConnection { implicit c =>
+		SQL("SELECT * FROM task WHERE usertask_fk = {usuario}").on(
+			'usuario -> login
+		).as(task *)
+	}
+	
+	def createUserTask(label: String, login: String): String = DB.withConnection { implicit c =>
+		SQL("INSERT INTO task (usertask_fk, label) VALUES ({login}, {label})").on(
+			'login ->login,
+			'label -> label
+		).executeUpdate()
+		return label
+	}
+	
+	
+	
+	
 	
 }

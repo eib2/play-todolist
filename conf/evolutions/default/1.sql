@@ -11,4 +11,4 @@ CREATE TABLE task (
 # --- !Downs
 
 DROP TABLE task;
-DROP SEQUENCE task:is_seq;
+DROP SEQUENCE task_is_seq;
